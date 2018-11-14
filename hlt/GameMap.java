@@ -74,10 +74,15 @@ public class GameMap {
 
     public Direction naiveNavigate(final Ship ship, final Position destination) {
         // getUnsafeMoves normalizes for us
+        if (!(ship.halite >= at(ship).halite/Constants.MOVE_COST_RATIO)) {
+            return Direction.STILL;
+        }
+
         for (final Direction direction : getUnsafeMoves(ship.position, destination)) {
             final Position targetPos = ship.position.directionalOffset(direction);
             if (!at(targetPos).isOccupied()) {
                 at(targetPos).markUnsafe(ship);
+                at(ship).markSafe();
                 return direction;
             }
         }
@@ -133,37 +138,50 @@ public class GameMap {
     }
 
     public Position bestDropoffLocation() {
+        //TODO
         //int value;
         //Position ??
         //tempVal =
         return null;
     }
 
+    public void markEnemyShips(Player me, ArrayList<Player> enemies) {
+        for (Player enemy : enemies) {
+            if (me.id == enemy.id)
+                continue;
+            else
+                for (Ship ship : enemy.ships.values()) {
+                    for (Position position : ship.position.getSurroundingCardinals()) {
+                        at(position).markUnsafe(ship);
+                    }
+                }
+        }
+    }
+
     public Position highestValueLocation(Ship ship, Player me) {
-        int bestVal = this.at(ship.position).halite*Constants.EXTRACT_RATIO;
+        int bestVal = (at(ship).halite/Constants.EXTRACT_RATIO)+(at(ship).halite/Constants.MOVE_COST_RATIO);
         Position bestPosition = ship.position;
         int bestDistance = (this.height+this.width)/2;
-
-        Log.log("highestValueLocation initiated.");
         //for every position in the map
         for (int x = 0; x < this.width; ++x)
             for (int y = 0; y < this.height; ++y) {
-                //  if inspired location
                 Position tempPosition = new Position(x,y);
+                if( tempPosition.equals(ship.position) )
+                    continue;
+
                 int tempVal;
                 int tempDistance = bestDistance = this.calculateDistance(ship.position, tempPosition);
                 int totalDistance = this.calculateDistance(ship.position, tempPosition) +
-                        this.calculateDistance(tempPosition, getNearestDropoff(ship, me).position)+1;
+                        this.calculateDistance(tempPosition, getNearestDropoff(ship, me).position);
 
                 //if position is inspired use inspired extraction ratio
                 if (this.at(tempPosition).inspired)
-                    tempVal = (this.at(tempPosition).halite*Constants.INSPIRED_EXTRACT_RATIO) / totalDistance;
+                    tempVal = this.at(tempPosition).halite/totalDistance*2;
                 else
-                    tempVal = (this.at(tempPosition).halite*Constants.EXTRACT_RATIO) / totalDistance;
+                    tempVal = this.at(tempPosition).halite/totalDistance;
 
                 //assign temp vars to best vars if better than best
-                if (tempVal >= bestVal && tempDistance < bestDistance) {
-                    Log.log("Better location than default found.");
+                if (tempVal >= bestVal) {
                     bestVal = tempVal;
                     bestPosition = tempPosition;
                     bestDistance = this.calculateDistance(ship.position, bestPosition);
