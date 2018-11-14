@@ -5,6 +5,7 @@ public class MapCell {
     public int halite;
     public Ship ship;
     public Entity structure;
+    public boolean inspired;
 
     public MapCell(final Position position, final int halite) {
         this.position = position;

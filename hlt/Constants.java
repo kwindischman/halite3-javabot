@@ -7,26 +7,37 @@ import java.util.Map;
 public class Constants {
     /** The maximum amount of halite a ship can carry. */
     public static int MAX_HALITE;
+
     /** The cost to build a single ship. */
     public static int SHIP_COST;
+
     /** The cost to build a dropoff. */
     public static int DROPOFF_COST;
+
     /** The maximum number of turns a game can last. */
     public static int MAX_TURNS;
+
     /** 1/EXTRACT_RATIO halite (rounded) is collected from a square per turn. */
     public static int EXTRACT_RATIO;
+
     /** 1/MOVE_COST_RATIO halite (rounded) is needed to move off a cell. */
     public static int MOVE_COST_RATIO;
+
     /** Whether inspiration is enabled. */
     public static boolean INSPIRATION_ENABLED;
+
     /** A ship is inspired if at least INSPIRATION_SHIP_COUNT opponent ships are within this Manhattan distance. */
     public static int INSPIRATION_RADIUS;
+
     /** A ship is inspired if at least this many opponent ships are within INSPIRATION_RADIUS distance. */
     public static int INSPIRATION_SHIP_COUNT;
+
     /** An inspired ship mines 1/X halite from a cell per turn instead. */
     public static int INSPIRED_EXTRACT_RATIO;
+
     /** An inspired ship that removes Y halite from a cell collects X*Y additional halite. */
     public static double INSPIRED_BONUS_MULTIPLIER;
+
     /** An inspired ship instead spends 1/X% halite to move. */
     public static int INSPIRED_MOVE_COST_RATIO;
 

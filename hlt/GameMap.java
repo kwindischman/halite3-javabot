@@ -1,5 +1,6 @@
 package hlt;
 
+import hlt.*;
 import java.util.ArrayList;
 
 public class GameMap {
@@ -119,5 +120,52 @@ public class GameMap {
         }
 
         return map;
+    }
+
+    ///////////////////////////////////////////////////////////////////////
+
+    public Entity getNearestDropoff(Ship ship, Player me) {
+        Entity nearestDrop = me.shipyard;
+        for (Dropoff dropoff: me.dropoffs.values())
+            if (calculateDistance(ship.position, dropoff.position) < calculateDistance(ship.position, nearestDrop.position))
+                nearestDrop = dropoff;
+        return nearestDrop;
+    }
+
+    public Position bestDropoffLocation() {
+        //int value;
+        //Position ??
+        //tempVal =
+        return null;
+    }
+
+    public Position highestValueLocation(Ship ship, Player me) {
+        int bestVal = this.at(ship.position).halite*Constants.EXTRACT_RATIO;
+        Position bestPosition = ship.position;
+        int bestDistance = this.calculateDistance(ship.position, bestPosition);
+        //for every position in the map
+        for (int x = 0; x < this.width; ++x)
+            for (int y = 0; y < this.height; ++y) {
+                //  if inspired location
+                Position tempPosition = new Position(x,y);
+                int tempVal;
+                int tempDistance = bestDistance = this.calculateDistance(ship.position, tempPosition);
+                int totalDistance = this.calculateDistance(ship.position, tempPosition) +
+                        this.calculateDistance(tempPosition, getNearestDropoff(ship, me).position);
+
+                //if position is inspired use inspired extraction ratio
+                if (this.at(tempPosition).inspired)
+                    tempVal = (this.at(tempPosition).halite*Constants.INSPIRED_EXTRACT_RATIO) / totalDistance;
+                else
+                    tempVal = (this.at(tempPosition).halite*Constants.EXTRACT_RATIO) / totalDistance;
+
+                //assign temp vars to best vars if better than best
+                if (tempVal >= bestVal && tempDistance < bestDistance) {
+                    bestVal = tempVal;
+                    bestPosition = tempPosition;
+                    bestDistance = this.calculateDistance(ship.position, bestPosition);
+                }
+            }
+        return bestPosition;
     }
 }
