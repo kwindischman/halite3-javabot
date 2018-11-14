@@ -1,7 +1,7 @@
 package hlt;
 
 import hlt.*;
-import java.util.ArrayList;
+import java.util.*;
 
 public class GameMap {
     public final int width;
@@ -86,6 +86,17 @@ public class GameMap {
                 return direction;
             }
         }
+        ArrayList<Direction> alternateMoves = alternateMoves(getUnsafeMoves(ship.position, destination));
+        Collections.shuffle(alternateMoves);
+        for (final Direction direction : alternateMoves) {
+            final Position targetPos = ship.position.directionalOffset(direction);
+            if (!at(targetPos).isOccupied()) {
+                at(targetPos).markUnsafe(ship);
+                at(ship).markSafe();
+                return direction;
+            }
+        }
+
 
         return Direction.STILL;
     }
@@ -128,6 +139,36 @@ public class GameMap {
     }
 
     ///////////////////////////////////////////////////////////////////////
+    public Direction crashNavigate(final Ship ship, final Position destination) {
+        // getUnsafeMoves normalizes for us
+        if (!(ship.halite >= at(ship).halite/Constants.MOVE_COST_RATIO)) {
+            return Direction.STILL;
+        }
+
+        for (final Direction direction : getUnsafeMoves(ship.position, destination)) {
+            final Position targetPos = ship.position.directionalOffset(direction);
+            if (!at(targetPos).isOccupied() || at(targetPos).hasStructure()) {
+                at(targetPos).markUnsafe(ship);
+                at(ship).markSafe();
+                return direction;
+            }
+        }
+
+        return Direction.STILL;
+    }
+
+    public ArrayList<Direction> alternateMoves(ArrayList<Direction> directions) {
+        ArrayList<Direction> alternateMoves = new ArrayList<Direction>();
+        if (directions.contains(Direction.NORTH) || directions.contains(Direction.SOUTH)) {
+            alternateMoves.add(Direction.EAST);
+            alternateMoves.add(Direction.WEST);
+        }
+        if (directions.contains(Direction.EAST) || directions.contains(Direction.WEST)) {
+            alternateMoves.add(Direction.NORTH);
+            alternateMoves.add(Direction.SOUTH);
+        }
+        return alternateMoves;
+    }
 
     public Entity getNearestDropoff(Ship ship, Player me) {
         Entity nearestDrop = me.shipyard;
@@ -159,7 +200,7 @@ public class GameMap {
     }
 
     public Position highestValueLocation(Ship ship, Player me) {
-        int bestVal = (at(ship).halite/Constants.EXTRACT_RATIO)+(at(ship).halite/Constants.MOVE_COST_RATIO);
+        int bestVal = ((at(ship).halite/Constants.EXTRACT_RATIO)+(at(ship).halite/Constants.MOVE_COST_RATIO))*6;
         Position bestPosition = ship.position;
         int bestDistance = (this.height+this.width)/2;
         //for every position in the map

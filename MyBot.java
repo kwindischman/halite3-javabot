@@ -42,13 +42,13 @@ public class MyBot {
             for (final Ship ship : me.ships.values()) {
                 //if the game is close to ending have the ships use an end-game move
                 //its ok to crash on a dropoff/shipyard but nowhere else
-                if (gameMap.calculateDistance(ship.position, me.shipyard.position) >= Constants.MAX_TURNS - 5) {
+                if (gameMap.calculateDistance(ship.position, me.shipyard.position) >= Constants.MAX_TURNS-game.turnNumber-10) {
                     //move to nearest dropoff w/ intent to crash
                     // TODO: Make a move method that causes ships to crash on dropoff/shipyard
                     Log.log("Ship '" + ship.id + "' is in endgame.");
                     commandQueue.add(
                             ship.move(
-                                    gameMap.naiveNavigate(ship, gameMap.getNearestDropoff(ship, me).position)
+                                    gameMap.crashNavigate(ship, gameMap.getNearestDropoff(ship, me).position)
                             )
                     );
                 }
