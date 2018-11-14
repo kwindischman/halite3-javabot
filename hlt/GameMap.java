@@ -142,7 +142,9 @@ public class GameMap {
     public Position highestValueLocation(Ship ship, Player me) {
         int bestVal = this.at(ship.position).halite*Constants.EXTRACT_RATIO;
         Position bestPosition = ship.position;
-        int bestDistance = this.calculateDistance(ship.position, bestPosition);
+        int bestDistance = (this.height+this.width)/2;
+
+        Log.log("highestValueLocation initiated.");
         //for every position in the map
         for (int x = 0; x < this.width; ++x)
             for (int y = 0; y < this.height; ++y) {
@@ -151,7 +153,7 @@ public class GameMap {
                 int tempVal;
                 int tempDistance = bestDistance = this.calculateDistance(ship.position, tempPosition);
                 int totalDistance = this.calculateDistance(ship.position, tempPosition) +
-                        this.calculateDistance(tempPosition, getNearestDropoff(ship, me).position);
+                        this.calculateDistance(tempPosition, getNearestDropoff(ship, me).position)+1;
 
                 //if position is inspired use inspired extraction ratio
                 if (this.at(tempPosition).inspired)
@@ -161,6 +163,7 @@ public class GameMap {
 
                 //assign temp vars to best vars if better than best
                 if (tempVal >= bestVal && tempDistance < bestDistance) {
+                    Log.log("Better location than default found.");
                     bestVal = tempVal;
                     bestPosition = tempPosition;
                     bestDistance = this.calculateDistance(ship.position, bestPosition);

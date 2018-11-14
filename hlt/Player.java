@@ -15,6 +15,15 @@ public class Player {
         this.shipyard = shipyard;
     }
 
+    public void clearEnroute(GameMap gameMap) {
+        if (gameMap.at(shipyard).isOccupied())
+            gameMap.at(shipyard).ship.enroute = false;
+
+        for (Dropoff dropoff : dropoffs.values())
+            if (gameMap.at(dropoff).isOccupied())
+                gameMap.at(dropoff).ship.enroute = false;
+    }
+
     void _update(final int numShips, final int numDropoffs, final int halite) {
         this.halite = halite;
 
