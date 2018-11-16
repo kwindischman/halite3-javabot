@@ -86,16 +86,6 @@ public class GameMap {
                 return direction;
             }
         }
-        ArrayList<Direction> alternateMoves = alternateMoves(getUnsafeMoves(ship.position, destination));
-        Collections.shuffle(alternateMoves);
-        for (final Direction direction : alternateMoves) {
-            final Position targetPos = ship.position.directionalOffset(direction);
-            if (!at(targetPos).isOccupied()) {
-                at(targetPos).markUnsafe(ship);
-                at(ship).markSafe();
-                return direction;
-            }
-        }
 
 
         return Direction.STILL;
@@ -138,7 +128,43 @@ public class GameMap {
         return map;
     }
 
-    ///////////////////////////////////////////////////////////////////////
+    /*
+    While ArrayList of ships with actions to choose is not empty, call newNavigate on ship at index 0
+
+    If there is a conflict
+
+    i could return an array of commands and append it to command queue*/
+
+   public ArrayList<Command> newNavigate(Ship ship, ArrayList<Ship> shipsToMove, ArrayList<Command> commands) {
+        for (final Direction direction : ship.moves) {
+            final Position targetPos = ship.position.directionalOffset(direction);
+
+            if (at(targetPos).isOccupied() && at(targetPos).ship.owner == ship.owner) {
+                if (shipsToMove.contains(at(targetPos).ship)) {
+                    commands = newNavigate(at(targetPos).ship, shipsToMove, commands);
+                }
+            } else {
+                at(targetPos).markUnsafe(ship);
+                at(ship).markSafe();
+                shipsToMove.remove(ship);
+                ship.moves.clear();
+                commands.add(ship.move(direction));
+                return commands;
+            }
+        }
+        shipsToMove.remove(ship);
+        ship.moves.clear();
+        commands.add(ship.stayStill());
+        return commands;
+    }
+
+    public boolean canMove(Ship ship) {
+       if(ship.halite >= at(ship).halite/Constants.MOVE_COST_RATIO)
+           return true;
+       return false;
+    }
+
+
     public Direction crashNavigate(final Ship ship, final Position destination) {
         // getUnsafeMoves normalizes for us
         if (!(ship.halite >= at(ship).halite/Constants.MOVE_COST_RATIO)) {
@@ -155,19 +181,6 @@ public class GameMap {
         }
 
         return Direction.STILL;
-    }
-
-    public ArrayList<Direction> alternateMoves(ArrayList<Direction> directions) {
-        ArrayList<Direction> alternateMoves = new ArrayList<Direction>();
-        if (directions.contains(Direction.NORTH) || directions.contains(Direction.SOUTH)) {
-            alternateMoves.add(Direction.EAST);
-            alternateMoves.add(Direction.WEST);
-        }
-        if (directions.contains(Direction.EAST) || directions.contains(Direction.WEST)) {
-            alternateMoves.add(Direction.NORTH);
-            alternateMoves.add(Direction.SOUTH);
-        }
-        return alternateMoves;
     }
 
     public Entity getNearestDropoff(Ship ship, Player me) {
@@ -212,8 +225,8 @@ public class GameMap {
 
                 int tempVal;
                 int tempDistance = bestDistance = this.calculateDistance(ship.position, tempPosition);
-                int totalDistance = this.calculateDistance(ship.position, tempPosition) +
-                        this.calculateDistance(tempPosition, getNearestDropoff(ship, me).position);
+                int totalDistance = this.calculateDistance(ship.position, tempPosition) /*+
+                        this.calculateDistance(tempPosition, getNearestDropoff(ship, me).position)*/;
 
                 //if position is inspired use inspired extraction ratio
                 if (this.at(tempPosition).inspired)

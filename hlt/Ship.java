@@ -1,8 +1,11 @@
 package hlt;
 
+import java.util.ArrayList;
+
 public class Ship extends Entity {
     public final int halite;
     public boolean enroute;
+    public ArrayList<Direction> moves = new ArrayList<Direction>();
 
     public Ship(final PlayerId owner, final EntityId id, final Position position, final int halite) {
         super(owner, id, position);
