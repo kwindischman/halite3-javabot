@@ -10,4 +10,4 @@ __pycache__/
 *.ipr
 *.iws
 README.md
-.idea
+.idea/
