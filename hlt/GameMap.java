@@ -136,26 +136,75 @@ public class GameMap {
     i could return an array of commands and append it to command queue*/
 
    public ArrayList<Command> newNavigate(Ship ship, ArrayList<Ship> shipsToMove, ArrayList<Command> commands) {
-        for (final Direction direction : ship.moves) {
-            final Position targetPos = ship.position.directionalOffset(direction);
+       //while ship.moves.isntEmpty
+       //do all the same stuff, but add a section saying "if ship.moves at collision contains opposite direction, swap"
+//        for (final Direction direction : ship.moves) {
+       Log.log("Movement for Ship: "+ship.id);
+       while( !(ship.moves.isEmpty()) ) {
+            final Position targetPos = ship.position.directionalOffset(ship.moves.get(0));
 
-            if (at(targetPos).isOccupied() && at(targetPos).ship.owner == ship.owner) {
-                if (shipsToMove.contains(at(targetPos).ship)) {
-                    commands = newNavigate(at(targetPos).ship, shipsToMove, commands);
+            if (at(targetPos).isOccupied()) {
+                Log.log("Target position is occupied,");
+                if (at(targetPos).ship.owner == ship.owner &&
+                        shipsToMove.contains(at(targetPos).ship)){
+                    Log.log("the ship is mine and still needs to move,");
+                    if (at(targetPos).ship.visited) {
+                        Log.log("and the ship has been visited.");
+                        Direction oppositeDir = canSwap(ship.moves.get(0), at(targetPos).ship.moves);
+                        if (oppositeDir != null) {
+                            Log.log("Ship Dir: " + ship.moves.get(0) + " Other Ship Dir: " + oppositeDir);
+                            commands.add(ship.move(ship.moves.get(0)));
+                            commands.add(at(targetPos).ship.move(oppositeDir));
+                            shipsToMove.remove(ship);
+                            shipsToMove.remove(at(targetPos).ship);
+                            ship.moves.clear();
+                            at(targetPos).ship.moves.clear();
+                            return commands;
+                        }
+                    } else {
+                        Log.log("and the ship has NOT been visited.");
+                        ship.visited = true;
+                        commands = newNavigate(at(targetPos).ship, shipsToMove, commands);
+                    }
                 }
+                if (!(ship.moves.isEmpty()))
+                    ship.moves.remove(0);
             } else {
+                Log.log("The target position is not occupied.");
                 at(targetPos).markUnsafe(ship);
                 at(ship).markSafe();
                 shipsToMove.remove(ship);
+                commands.add(ship.move(ship.moves.get(0)));
                 ship.moves.clear();
-                commands.add(ship.move(direction));
                 return commands;
             }
         }
-        shipsToMove.remove(ship);
-        ship.moves.clear();
-        commands.add(ship.stayStill());
+        if(shipsToMove.contains(ship)) {
+            Log.log("The ship is staying still.");
+            shipsToMove.remove(ship);
+            ship.moves.clear();
+            commands.add(ship.stayStill());
+        }
         return commands;
+    }
+
+    public Direction canSwap(Direction direction, ArrayList<Direction> moves) {
+       Direction oppositeDir = null;
+       if(direction == Direction.NORTH) {
+           oppositeDir = Direction.SOUTH;
+       } else if(direction == Direction.SOUTH) {
+           oppositeDir = Direction.NORTH;
+       } else if(direction == Direction.EAST) {
+            oppositeDir = Direction.WEST;
+        } else if(direction == Direction.WEST) {
+            oppositeDir = Direction.EAST;
+        }
+        for(Direction otherDirection: moves){
+           if(oppositeDir == otherDirection){
+               return oppositeDir;
+           }
+       }
+       return null;
     }
 
     public boolean canMove(Ship ship) {
@@ -204,11 +253,9 @@ public class GameMap {
             if (me.id == enemy.id)
                 continue;
             else
-                for (Ship ship : enemy.ships.values()) {
-                    for (Position position : ship.position.getSurroundingCardinals()) {
+                for (Ship ship : enemy.ships.values())
+                    for (Position position : ship.position.getSurroundingCardinals())
                         at(position).markUnsafe(ship);
-                    }
-                }
         }
     }
 
