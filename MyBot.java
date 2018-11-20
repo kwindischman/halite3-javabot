@@ -23,9 +23,6 @@ public class MyBot {
         game.ready("MyJavaBot");
 
         Log.log("Successfully created bot! My Player ID is " + game.myId + ". Bot rng seed is " + rngSeed + ".");
-        Log.log("Extraction Ratio is: "+Constants.EXTRACT_RATIO);
-        Log.log("Move Ratio is: "+Constants.MOVE_COST_RATIO);
-        Log.log("Dropoff cost is: "+Constants.DROPOFF_COST);
 
         for (;;) {
             game.updateFrame();
@@ -38,12 +35,15 @@ public class MyBot {
 
             //TODO: Find inspired locations
 
+            //TODO: Make a hash/set of shipContainers for their initialization variables each turn
+
             //TODO: get ships to make a dropoff when resource near the shipyard is low
 
             //Set ships' enroute to be false if on a dropoff/shipyard
             me.clearEnroute(gameMap);
 
             for (final Ship ship : me.ships.values()) {
+                Log.log("Ship id: "+ship.id+" Enroute: "+ship.enroute);
                 //if the game is close to ending have the ships use an end-game move
                 if (gameMap.calculateDistance(ship.position, me.shipyard.position) >= Constants.MAX_TURNS-game.turnNumber-15) {
                     //move to nearest dropoff w/ intent to crash
@@ -57,33 +57,24 @@ public class MyBot {
                     );
                 }
                 //if ship is full/almost full, or enroute, move to nearest dropoff location
-                else if (ship.halite > 900 || ship.enroute) {
+                else if (ship.enroute || ship.isFull()) {
                     Log.log("Ship '" + ship.id + "' is enroute to " + gameMap.getNearestDropoff(ship, me).id + ".");
 
                     ship.enroute = true;
                     ship.moves = gameMap.getUnsafeMoves(ship.position, gameMap.getNearestDropoff(ship, me).position);
                     myShips.add(ship);
-//                    commandQueue.add(
-//                            ship.move(
-//                                    gameMap.naiveNavigate(ship, gameMap.getNearestDropoff(ship, me).position)
-//                            )
-//                    );
                 }
                 // if the ship has enough resource to move from the current spot, find most valuable spot
                 else if(gameMap.canMove(ship)) {
                     Log.log("Ship '" + ship.id + "' is making a movement.");
                     ship.moves = gameMap.getUnsafeMoves(ship.position, gameMap.highestValueLocation(ship, me));
                     myShips.add(ship);
-//                    commandQueue.add(
-//                            ship.move(
-//                                    gameMap.naiveNavigate(ship, gameMap.highestValueLocation(ship, me))
-//                            )
-//                    );
                 }
                 // otherwise stay still
                 else {
                     commandQueue.add(ship.stayStill());
                 }
+                Log.log("Ship id: "+ship.id+" Enroute: "+ship.enroute);
             }
 
             // for each ship with an action to move, settle movement disputes
